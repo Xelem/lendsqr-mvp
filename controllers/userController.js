@@ -2,6 +2,7 @@ const bcrypt = require("bcrypt");
 const validator = require("validator");
 const jwt = require("jsonwebtoken");
 const knexConfig = require("../db/knexfile");
+const catchAsync = require("../utilities/catchAsync");
 const knex = require("knex")(knexConfig[process.env.NODE_ENV]);
 
 //Create token
@@ -14,7 +15,7 @@ const createToken = (user) => {
   return token;
 };
 
-exports.create_account = async (req, res, next) => {
+exports.create_account = catchAsync(async (req, res, next) => {
   const { firstName, lastName, userName, email, password } = req.body;
 
   if (!firstName || !lastName || !userName || !email || !password) {
@@ -64,9 +65,9 @@ exports.create_account = async (req, res, next) => {
       error,
     });
   }
-};
+});
 
-exports.login = async (req, res) => {
+exports.login = catchAsync(async (req, res) => {
   const { username, password } = req.body;
 
   if (!username || !password) {
@@ -98,4 +99,4 @@ exports.login = async (req, res) => {
     message: "Logged in",
     token,
   });
-};
+});

@@ -1,8 +1,9 @@
 const jwt = require("jsonwebtoken");
 const knexConfig = require("../db/knexfile");
 const knex = require("knex")(knexConfig[process.env.NODE_ENV]);
+const catchAsync = require("../utilities/catchAsync");
 
-exports.protect = async (req, res, next) => {
+exports.protect = catchAsync(async (req, res, next) => {
   // check for token
   let token;
   const { authorization } = req.headers;
@@ -36,4 +37,4 @@ exports.protect = async (req, res, next) => {
   // grant access
   req.user = user[0];
   next();
-};
+});

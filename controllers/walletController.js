@@ -1,8 +1,9 @@
 const validator = require("validator");
 const knexConfig = require("../db/knexfile");
+const catchAsync = require("../utilities/catchAsync");
 const knex = require("knex")(knexConfig[process.env.NODE_ENV]);
 
-exports.createWallet = async (req, res) => {
+exports.createWallet = catchAsync(async (req, res) => {
   const { id, username } = req.user;
   const token = req.token;
 
@@ -37,7 +38,7 @@ exports.createWallet = async (req, res) => {
     wallet: wallet[0],
     token,
   });
-};
+});
 
 exports.fundWallet = (req, res, next) => {
   const { amount } = req.body;
@@ -52,7 +53,7 @@ exports.fundWallet = (req, res, next) => {
   next();
 };
 
-exports.transferFunds = async (req, res) => {
+exports.transferFunds = catchAsync(async (req, res) => {
   const { username, amount } = req.body;
 
   // Check if balance is sufficient
@@ -124,6 +125,6 @@ exports.transferFunds = async (req, res) => {
     message: `You have successfully transferred ₦${amount} to ${username}`,
     balance: `₦${updSenderWallet[0].amount}`,
   });
-};
+});
 
 exports.withdrawFunds = (req, res, next) => {};
