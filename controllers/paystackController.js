@@ -1,5 +1,6 @@
 const paystack = require("paystack-api")(process.env.PAYSTACK_SECRET_KEY_DEV);
 const knexConfig = require("../db/knexfile");
+const AppError = require("../utilities/appError");
 const catchAsync = require("../utilities/catchAsync");
 const knex = require("knex")(knexConfig[process.env.NODE_ENV]);
 
@@ -21,10 +22,9 @@ exports.verifyPayment = catchAsync(async (req, res) => {
   });
 
   if (status.data.status !== "success") {
-    return res.status(400).json({
-      status: "fail",
-      message: "Transaction was not successful, please try again",
-    });
+    return next(
+      new AppError("Transaction was not successful, please try again", 400)
+    );
   }
 
   //   Update wallet balance

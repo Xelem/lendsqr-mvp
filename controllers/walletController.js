@@ -44,10 +44,12 @@ exports.fundWallet = (req, res, next) => {
   const { amount } = req.body;
 
   if (!validator.isInt(amount, { min: 10000, max: 500000 })) {
-    return res.status(400).json({
-      status: "fail",
-      message: "You can deposit a minimum of ₦10,000 and a maximum of ₦500,000",
-    });
+    return next(
+      new AppError(
+        "You can deposit a minimum of ₦10,000 and a maximum of ₦500,000",
+        400
+      )
+    );
   }
   req.amount = amount;
   next();
@@ -67,10 +69,7 @@ exports.transferFunds = catchAsync(async (req, res) => {
     .where({ user_id: req.user.id });
 
   if (amount > senderWallet[0].amount) {
-    return res.status(400).json({
-      status: "fail",
-      message: "Insufficient balance",
-    });
+    return next(new AppError("Insufficient balance", 400));
   }
 
   // Get the recipent details
@@ -82,10 +81,7 @@ exports.transferFunds = catchAsync(async (req, res) => {
     .where({ username });
 
   if (!recipient[0]) {
-    return res.status(400).json({
-      status: "fail",
-      message: "The recipient does not exist",
-    });
+    return next(new AppError("The recipient does not exist", 400));
   }
 
   const recipientWallet = await knex("wallets")
