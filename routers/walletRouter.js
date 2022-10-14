@@ -14,4 +14,7 @@ router.post(
 );
 router.get("/fund_wallet/verify/:ref", paystackController.verifyPayment);
 
+router.post("/withdraw", walletController.withdrawFunds);
+router.post("/transfer", walletController.transferFunds);
+
 module.exports = router;
