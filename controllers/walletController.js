@@ -35,3 +35,5 @@ exports.createWallet = async (req, res) => {
     wallet: wallet[0],
   });
 };
+
+exports.fundWallet = (req, res) => {};
