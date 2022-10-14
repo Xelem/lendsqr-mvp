@@ -23,6 +23,7 @@ exports.protect = async (req, res, next) => {
     .select({
       id: "id",
       username: "username",
+      email: "email",
     })
     .where({ id: decoded.id });
 
