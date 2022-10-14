@@ -59,3 +59,47 @@ exports.verifyPayment = async (req, res) => {
     balance: `₦${updWallet[0].amount}`,
   });
 };
+
+exports.listBanks = async (req, res) => {
+  const banks = await paystack.misc.list_banks();
+
+  res.status(200).json({ banks });
+};
+
+exports.verifyAccountDetails = async (req, res) => {
+  const data = await paystack.verification.resolveAccount({
+    account_number: "0133177085",
+    bank_code: "032",
+  });
+
+  res.status(200).json({
+    data,
+  });
+};
+
+exports.createRecipient = async (req, res) => {
+  const data = await paystack.transfer_recipient.create({
+    type: "nuban",
+    name: "IWUANYANWU ANSELM CHIZURUM",
+    account_number: "0133177085",
+    bank_code: "032",
+    currency: "NGN",
+  });
+
+  res.status(200).json({
+    data,
+  });
+};
+
+exports.initiateTransfer = async (req, res) => {
+  const data = await paystack.transfer.create({
+    source: "balance",
+    reason: "Withdrawal",
+    amount: "1000",
+    recipient: "RCP_y3fvn8ogez78ohg",
+  });
+
+  res.status(200).json({
+    data,
+  });
+};

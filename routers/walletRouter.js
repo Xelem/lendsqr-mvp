@@ -5,6 +5,11 @@ const paystackController = require("../controllers/paystackController");
 
 const router = express.Router();
 
+router.post("/create_recipient", paystackController.createRecipient);
+router.post("/initiate_transfer", paystackController.initiateTransfer);
+router.get("/listbanks", paystackController.listBanks);
+router.get("/resolve_account", paystackController.verifyAccountDetails);
+
 router.use(authController.protect);
 
 router.post(
