@@ -1,7 +1,18 @@
 const bcrypt = require("bcrypt");
 const validator = require("validator");
+const jwt = require("jsonwebtoken");
 const knexConfig = require("../db/knexfile");
 const knex = require("knex")(knexConfig[process.env.NODE_ENV]);
+
+//Create token
+const createToken = (user) => {
+  const { id } = user;
+  const token = jwt.sign({ id }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRES_IN,
+  });
+
+  return token;
+};
 
 exports.create_account = async (req, res, next) => {
   const { firstName, lastName, userName, email, password } = req.body;
@@ -43,7 +54,9 @@ exports.create_account = async (req, res, next) => {
       })
       .where({ id: userID });
 
+    const token = createToken(user[0]);
     req.user = user[0];
+    req.token = token;
     next();
   } catch (error) {
     res.status(400).json({
@@ -79,8 +92,10 @@ exports.login = async (req, res) => {
     });
   }
 
+  const token = createToken(user[0]);
   res.status(200).json({
     status: "success",
     message: "Logged in",
+    token,
   });
 };

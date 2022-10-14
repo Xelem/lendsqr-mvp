@@ -3,6 +3,7 @@ const knex = require("knex")(knexConfig[process.env.NODE_ENV]);
 
 exports.createWallet = async (req, res) => {
   const { id, username } = req.user;
+  const token = req.token;
 
   let characters =
     "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -10,7 +11,6 @@ exports.createWallet = async (req, res) => {
   let length = 20;
   for (let i = length; i > 0; --i)
     result += characters[Math.round(Math.random() * (characters.length - 1))];
-  console.log(result);
 
   const walletID = await knex("wallets").insert({
     user_id: id,
@@ -33,6 +33,7 @@ exports.createWallet = async (req, res) => {
       username,
     },
     wallet: wallet[0],
+    token,
   });
 };
 
