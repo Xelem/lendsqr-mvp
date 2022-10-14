@@ -1,3 +1,4 @@
+const validator = require("validator");
 const knexConfig = require("../db/knexfile");
 const knex = require("knex")(knexConfig[process.env.NODE_ENV]);
 
@@ -37,4 +38,15 @@ exports.createWallet = async (req, res) => {
   });
 };
 
-exports.fundWallet = (req, res) => {};
+exports.fundWallet = (req, res, next) => {
+  const { amount } = req.body;
+
+  if (!validator.isInt(amount, { min: 10000, max: 500000 })) {
+    return res.status(400).json({
+      status: "fail",
+      message: "You can deposit a minimum of ₦10,000 and a maximum of ₦500,000",
+    });
+  }
+  req.amount = amount;
+  next();
+};
