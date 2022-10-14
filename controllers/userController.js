@@ -35,32 +35,25 @@ exports.create_account = catchAsync(async (req, res, next) => {
   }
   const hashedPW = await bcrypt.hash(password, 12);
 
-  try {
-    const userID = await knex("users").insert({
-      first_name: firstName,
-      last_name: lastName,
-      username: userName,
-      email,
-      password: hashedPW,
-    });
+  const userID = await knex("users").insert({
+    first_name: firstName,
+    last_name: lastName,
+    username: userName,
+    email,
+    password: hashedPW,
+  });
 
-    const user = await knex("users")
-      .select({
-        id: "id",
-        username: "username",
-      })
-      .where({ id: userID });
+  const user = await knex("users")
+    .select({
+      id: "id",
+      username: "username",
+    })
+    .where({ id: userID });
 
-    const token = createToken(user[0]);
-    req.user = user[0];
-    req.token = token;
-    next();
-  } catch (error) {
-    res.status(400).json({
-      status: "fail",
-      error,
-    });
-  }
+  const token = createToken(user[0]);
+  req.user = user[0];
+  req.token = token;
+  next();
 });
 
 exports.login = catchAsync(async (req, res) => {
