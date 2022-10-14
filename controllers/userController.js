@@ -3,7 +3,7 @@ const validator = require("validator");
 const knexConfig = require("../db/knexfile");
 const knex = require("knex")(knexConfig[process.env.NODE_ENV]);
 
-exports.create_account = async (req, res) => {
+exports.create_account = async (req, res, next) => {
   const { firstName, lastName, userName, email, password } = req.body;
 
   if (!firstName || !lastName || !userName || !email || !password) {
@@ -43,10 +43,8 @@ exports.create_account = async (req, res) => {
       })
       .where({ id: userID });
 
-    res.status(201).json({
-      status: "success",
-      user: user[0],
-    });
+    req.user = user[0];
+    next();
   } catch (error) {
     res.status(400).json({
       status: "fail",
