@@ -5,17 +5,10 @@ const knexConfig = require("../db/knexfile");
 const knex = require("knex")(knexConfig[process.env.NODE_ENV]);
 
 //Create token
-const createToken = (user, res) => {
+const createToken = (user) => {
   const { id } = user;
   const token = jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN,
-  });
-
-  res.cookie("jwt", token, {
-    expires: new Date(
-      Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
-    ),
-    httpOnly: true,
   });
 
   return token;
@@ -61,7 +54,9 @@ exports.create_account = async (req, res, next) => {
       })
       .where({ id: userID });
 
+    const token = createToken(user[0]);
     req.user = user[0];
+    req.token = token;
     next();
   } catch (error) {
     res.status(400).json({
@@ -97,8 +92,10 @@ exports.login = async (req, res) => {
     });
   }
 
+  const token = createToken(user[0]);
   res.status(200).json({
     status: "success",
     message: "Logged in",
+    token,
   });
 };
