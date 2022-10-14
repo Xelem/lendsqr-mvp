@@ -12,5 +12,6 @@ router.post(
   walletController.fundWallet,
   paystackController.initializeTransaction
 );
+router.get("/fund_wallet/verify/:ref", paystackController.verifyPayment);
 
 module.exports = router;

@@ -11,3 +11,23 @@ exports.initializeTransaction = async (req, res) => {
     session,
   });
 };
+
+exports.verifyPayment = async (req, res) => {
+  const status = await paystack.transaction.verify({
+    reference: req.params.ref,
+  });
+
+  if (status.data.status !== "success") {
+    return res.status(400).json({
+      status: "fail",
+      message: "Transaction was not successful, please try again",
+    });
+  }
+
+  res.status(200).json({
+    status: "success",
+    message: `Congratulations! You have successfully credited your Lendsqr wallet with ₦${
+      status.data.amount / 100
+    }`,
+  });
+};
