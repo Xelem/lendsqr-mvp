@@ -148,6 +148,6 @@ exports.withdrawFunds = async (req, res, next) => {
   };
 
   req.withdrawDetails = withdrawDetails;
-
+  req.userWallet = userWallet[0];
   next();
 };

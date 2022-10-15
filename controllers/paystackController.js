@@ -69,13 +69,32 @@ exports.listBanks = catchAsync(async (req, res) => {
 
 exports.verifyAccountDetails = catchAsync(async (req, res) => {
   const { accountNumber, bankCode, amount } = req.withdrawDetails;
+  const userWallet = req.userWallet;
   const result = await paystack.verification.resolveAccount({
     account_number: accountNumber,
     bank_code: bankCode,
   });
-  console.log(result);
+
+  // Actual withdrawal
+  await knex("wallets")
+    .where({ user_id: req.user.id })
+    .update({
+      amount: userWallet.amount - amount,
+    });
+
+  // Get user wallet balance
+  const updUserWallet = await knex("wallets")
+    .select({
+      id: "id",
+      user_id: "user_id",
+      wallet_address: "wallet_address",
+      amount: "amount",
+    })
+    .where({ user_id: req.user.id });
+
   res.status(200).json({
     status: "success",
     message: `Congratulations! You have withdrawn ₦${amount} from your Lendsqr account to ${result.data.account_name}`,
+    balance: `₦${updUserWallet[0].amount}`,
   });
 });

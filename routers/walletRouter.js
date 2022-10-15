@@ -5,7 +5,6 @@ const paystackController = require("../controllers/paystackController");
 
 const router = express.Router();
 
-// router.get("/listbanks", paystackController.listBanks);
 // router.get("/resolve_account", paystackController.verifyAccountDetails);
 // router.post("/create_recipient", paystackController.createRecipient);
 // router.post("/initiate_transfer", paystackController.initiateTransfer);
@@ -18,6 +17,7 @@ router.post(
   paystackController.initializeTransaction
 );
 router.get("/fund_wallet/verify/:ref", paystackController.verifyPayment);
+router.get("/listbanks", paystackController.listBanks);
 
 router.post(
   "/withdraw",
