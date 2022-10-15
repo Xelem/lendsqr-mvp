@@ -13,3 +13,11 @@ const knex = require("knex")(knexConfig[process.env.NODE_ENV]);
 knex.raw("SELECT VERSION()").then(() => {
   console.log("DB connection successful");
 });
+
+process.on("unhandledRejection", (err) => {
+  console.log(err.name, err.message);
+  console.error("Unhandled Rejection!!! Shutting Down...💥");
+  server.close(() => {
+    process.exit(1);
+  });
+});
