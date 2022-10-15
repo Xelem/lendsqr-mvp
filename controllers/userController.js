@@ -2,6 +2,8 @@ const bcrypt = require("bcrypt");
 const validator = require("validator");
 const jwt = require("jsonwebtoken");
 const knexConfig = require("../db/knexfile");
+const catchAsync = require("../utilities/catchAsync");
+const AppError = require("../utilities/appError");
 const knex = require("knex")(knexConfig[process.env.NODE_ENV]);
 
 //Create token
@@ -14,66 +16,51 @@ const createToken = (user) => {
   return token;
 };
 
-exports.create_account = async (req, res, next) => {
+exports.create_account = catchAsync(async (req, res, next) => {
   const { firstName, lastName, userName, email, password } = req.body;
 
   if (!firstName || !lastName || !userName || !email || !password) {
-    res.status(400).json({
-      status: "fail",
-      message: "Please input all necessary fields",
-    });
+    return next(new AppError("Please input all necessary fields", 400));
   }
   if (!validator.isEmail(email)) {
-    res.status(400).json({
-      status: "fail",
-      message: "Please put in a valid email address",
-    });
+    return next(new AppError("Please put in a valid email address", 400));
   }
   if (!validator.isStrongPassword(password)) {
-    res.status(400).json({
-      status: "fail",
-      message:
+    return next(
+      new AppError(
         "A strong password should be at least 8 characters long and MUST contain a lower case and an upper case letter, a number and a symbol",
-    });
+        400
+      )
+    );
   }
   const hashedPW = await bcrypt.hash(password, 12);
 
-  try {
-    const userID = await knex("users").insert({
-      first_name: firstName,
-      last_name: lastName,
-      username: userName,
-      email,
-      password: hashedPW,
-    });
+  const userID = await knex("users").insert({
+    first_name: firstName,
+    last_name: lastName,
+    username: userName,
+    email,
+    password: hashedPW,
+  });
 
-    const user = await knex("users")
-      .select({
-        id: "id",
-        username: "username",
-      })
-      .where({ id: userID });
+  const user = await knex("users")
+    .select({
+      id: "id",
+      username: "username",
+    })
+    .where({ id: userID });
 
-    const token = createToken(user[0]);
-    req.user = user[0];
-    req.token = token;
-    next();
-  } catch (error) {
-    res.status(400).json({
-      status: "fail",
-      error,
-    });
-  }
-};
+  const token = createToken(user[0]);
+  req.user = user[0];
+  req.token = token;
+  next();
+});
 
-exports.login = async (req, res) => {
+exports.login = catchAsync(async (req, res) => {
   const { username, password } = req.body;
 
   if (!username || !password) {
-    res.status(400).json({
-      status: "fail",
-      message: "Please input all necessary fields",
-    });
+    return next(new AppError("Please input all necessary fields", 400));
   }
 
   const user = await knex("users")
@@ -86,10 +73,7 @@ exports.login = async (req, res) => {
     .where({ username });
 
   if (!user[0] || !(await bcrypt.compare(password, user[0].password))) {
-    res.status(400).json({
-      status: "fail",
-      message: "Incorrect username or password",
-    });
+    return next(new AppError("Incorrect username or password", 400));
   }
 
   const token = createToken(user[0]);
@@ -98,4 +82,4 @@ exports.login = async (req, res) => {
     message: "Logged in",
     token,
   });
-};
+});

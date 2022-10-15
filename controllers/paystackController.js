@@ -1,8 +1,10 @@
 const paystack = require("paystack-api")(process.env.PAYSTACK_SECRET_KEY_DEV);
 const knexConfig = require("../db/knexfile");
+const AppError = require("../utilities/appError");
+const catchAsync = require("../utilities/catchAsync");
 const knex = require("knex")(knexConfig[process.env.NODE_ENV]);
 
-exports.initializeTransaction = async (req, res) => {
+exports.initializeTransaction = catchAsync(async (req, res) => {
   const session = await paystack.transaction.initialize({
     email: req.user.email,
     amount: req.amount * 100,
@@ -12,18 +14,17 @@ exports.initializeTransaction = async (req, res) => {
     status: "success",
     session,
   });
-};
+});
 
-exports.verifyPayment = async (req, res) => {
+exports.verifyPayment = catchAsync(async (req, res) => {
   const status = await paystack.transaction.verify({
     reference: req.params.ref,
   });
 
   if (status.data.status !== "success") {
-    return res.status(400).json({
-      status: "fail",
-      message: "Transaction was not successful, please try again",
-    });
+    return next(
+      new AppError("Transaction was not successful, please try again", 400)
+    );
   }
 
   //   Update wallet balance
@@ -58,15 +59,15 @@ exports.verifyPayment = async (req, res) => {
     }`,
     balance: `₦${updWallet[0].amount}`,
   });
-};
+});
 
-exports.listBanks = async (req, res) => {
+exports.listBanks = catchAsync(async (req, res) => {
   const banks = await paystack.misc.list_banks();
 
   res.status(200).json({ banks });
-};
+});
 
-exports.verifyAccountDetails = async (req, res) => {
+exports.verifyAccountDetails = catchAsync(async (req, res) => {
   const data = await paystack.verification.resolveAccount({
     account_number: "0133177085",
     bank_code: "032",
@@ -75,9 +76,9 @@ exports.verifyAccountDetails = async (req, res) => {
   res.status(200).json({
     data,
   });
-};
+});
 
-exports.createRecipient = async (req, res) => {
+exports.createRecipient = catchAsync(async (req, res) => {
   const data = await paystack.transfer_recipient.create({
     type: "nuban",
     name: "IWUANYANWU ANSELM CHIZURUM",
@@ -89,9 +90,9 @@ exports.createRecipient = async (req, res) => {
   res.status(200).json({
     data,
   });
-};
+});
 
-exports.initiateTransfer = async (req, res) => {
+exports.initiateTransfer = catchAsync(async (req, res) => {
   const data = await paystack.transfer.create({
     source: "balance",
     reason: "Withdrawal",
@@ -102,4 +103,4 @@ exports.initiateTransfer = async (req, res) => {
   res.status(200).json({
     data,
   });
-};
+});

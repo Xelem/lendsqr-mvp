@@ -5,6 +5,7 @@ const rateLimit = require("express-rate-limit");
 const app = express();
 const userRouter = require("./routers/userRouter");
 const walletRouter = require("./routers/walletRouter");
+const globalErrorHandler = require("./controllers/errorController");
 
 //Development logging
 if (process.env.NODE_ENV === "development") {
@@ -25,5 +26,7 @@ app.use(express.urlencoded({ extended: true, limit: "10kb" }));
 // Routes
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/wallets", walletRouter);
+
+app.use(globalErrorHandler);
 
 module.exports = app;

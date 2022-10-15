@@ -1,8 +1,9 @@
 const validator = require("validator");
 const knexConfig = require("../db/knexfile");
+const catchAsync = require("../utilities/catchAsync");
 const knex = require("knex")(knexConfig[process.env.NODE_ENV]);
 
-exports.createWallet = async (req, res) => {
+exports.createWallet = catchAsync(async (req, res) => {
   const { id, username } = req.user;
   const token = req.token;
 
@@ -37,22 +38,24 @@ exports.createWallet = async (req, res) => {
     wallet: wallet[0],
     token,
   });
-};
+});
 
 exports.fundWallet = (req, res, next) => {
   const { amount } = req.body;
 
   if (!validator.isInt(amount, { min: 10000, max: 500000 })) {
-    return res.status(400).json({
-      status: "fail",
-      message: "You can deposit a minimum of ₦10,000 and a maximum of ₦500,000",
-    });
+    return next(
+      new AppError(
+        "You can deposit a minimum of ₦10,000 and a maximum of ₦500,000",
+        400
+      )
+    );
   }
   req.amount = amount;
   next();
 };
 
-exports.transferFunds = async (req, res) => {
+exports.transferFunds = catchAsync(async (req, res) => {
   const { username, amount } = req.body;
 
   // Check if balance is sufficient
@@ -66,10 +69,7 @@ exports.transferFunds = async (req, res) => {
     .where({ user_id: req.user.id });
 
   if (amount > senderWallet[0].amount) {
-    return res.status(400).json({
-      status: "fail",
-      message: "Insufficient balance",
-    });
+    return next(new AppError("Insufficient balance", 400));
   }
 
   // Get the recipent details
@@ -81,10 +81,7 @@ exports.transferFunds = async (req, res) => {
     .where({ username });
 
   if (!recipient[0]) {
-    return res.status(400).json({
-      status: "fail",
-      message: "The recipient does not exist",
-    });
+    return next(new AppError("The recipient does not exist", 400));
   }
 
   const recipientWallet = await knex("wallets")
@@ -124,6 +121,6 @@ exports.transferFunds = async (req, res) => {
     message: `You have successfully transferred ₦${amount} to ${username}`,
     balance: `₦${updSenderWallet[0].amount}`,
   });
-};
+});
 
 exports.withdrawFunds = (req, res, next) => {};
