@@ -68,39 +68,14 @@ exports.listBanks = catchAsync(async (req, res) => {
 });
 
 exports.verifyAccountDetails = catchAsync(async (req, res) => {
-  const data = await paystack.verification.resolveAccount({
-    account_number: "0133177085",
-    bank_code: "032",
+  const { accountNumber, bankCode, amount } = req.withdrawDetails;
+  const result = await paystack.verification.resolveAccount({
+    account_number: accountNumber,
+    bank_code: bankCode,
   });
-
+  console.log(result);
   res.status(200).json({
-    data,
-  });
-});
-
-exports.createRecipient = catchAsync(async (req, res) => {
-  const data = await paystack.transfer_recipient.create({
-    type: "nuban",
-    name: "IWUANYANWU ANSELM CHIZURUM",
-    account_number: "0133177085",
-    bank_code: "032",
-    currency: "NGN",
-  });
-
-  res.status(200).json({
-    data,
-  });
-});
-
-exports.initiateTransfer = catchAsync(async (req, res) => {
-  const data = await paystack.transfer.create({
-    source: "balance",
-    reason: "Withdrawal",
-    amount: "1000",
-    recipient: "RCP_y3fvn8ogez78ohg",
-  });
-
-  res.status(200).json({
-    data,
+    status: "success",
+    message: `Congratulations! You have withdrawn ₦${amount} from your Lendsqr account to ${result.data.account_name}`,
   });
 });
