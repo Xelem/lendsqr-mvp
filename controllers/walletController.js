@@ -1,5 +1,6 @@
 const validator = require("validator");
 const knexConfig = require("../db/knexfile");
+const AppError = require("../utilities/appError");
 const catchAsync = require("../utilities/catchAsync");
 const knex = require("knex")(knexConfig[process.env.NODE_ENV]);
 
@@ -123,4 +124,30 @@ exports.transferFunds = catchAsync(async (req, res) => {
   });
 });
 
-exports.withdrawFunds = (req, res, next) => {};
+exports.withdrawFunds = async (req, res, next) => {
+  const { accountNumber, bankCode, amount } = req.body;
+
+  // Check if balance is sufficient
+  const userWallet = await knex("wallets")
+    .select({
+      id: "id",
+      user_id: "user_id",
+      wallet_address: "wallet_address",
+      amount: "amount",
+    })
+    .where({ user_id: req.user.id });
+
+  if (amount > userWallet[0].amount) {
+    return next(new AppError("Insufficient balance", 400));
+  }
+
+  const withdrawDetails = {
+    accountNumber: accountNumber,
+    bankCode: bankCode,
+    amount: amount,
+  };
+
+  req.withdrawDetails = withdrawDetails;
+  req.userWallet = userWallet[0];
+  next();
+};

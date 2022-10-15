@@ -5,10 +5,9 @@ const paystackController = require("../controllers/paystackController");
 
 const router = express.Router();
 
-router.post("/create_recipient", paystackController.createRecipient);
-router.post("/initiate_transfer", paystackController.initiateTransfer);
-router.get("/listbanks", paystackController.listBanks);
-router.get("/resolve_account", paystackController.verifyAccountDetails);
+// router.get("/resolve_account", paystackController.verifyAccountDetails);
+// router.post("/create_recipient", paystackController.createRecipient);
+// router.post("/initiate_transfer", paystackController.initiateTransfer);
 
 router.use(authController.protect);
 
@@ -18,8 +17,13 @@ router.post(
   paystackController.initializeTransaction
 );
 router.get("/fund_wallet/verify/:ref", paystackController.verifyPayment);
+router.get("/listbanks", paystackController.listBanks);
 
-router.post("/withdraw", walletController.withdrawFunds);
+router.post(
+  "/withdraw",
+  walletController.withdrawFunds,
+  paystackController.verifyAccountDetails
+);
 router.post("/transfer", walletController.transferFunds);
 
 module.exports = router;

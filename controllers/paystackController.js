@@ -68,39 +68,33 @@ exports.listBanks = catchAsync(async (req, res) => {
 });
 
 exports.verifyAccountDetails = catchAsync(async (req, res) => {
-  const data = await paystack.verification.resolveAccount({
-    account_number: "0133177085",
-    bank_code: "032",
+  const { accountNumber, bankCode, amount } = req.withdrawDetails;
+  const userWallet = req.userWallet;
+  const result = await paystack.verification.resolveAccount({
+    account_number: accountNumber,
+    bank_code: bankCode,
   });
+
+  // Actual withdrawal
+  await knex("wallets")
+    .where({ user_id: req.user.id })
+    .update({
+      amount: userWallet.amount - amount,
+    });
+
+  // Get user wallet balance
+  const updUserWallet = await knex("wallets")
+    .select({
+      id: "id",
+      user_id: "user_id",
+      wallet_address: "wallet_address",
+      amount: "amount",
+    })
+    .where({ user_id: req.user.id });
 
   res.status(200).json({
-    data,
-  });
-});
-
-exports.createRecipient = catchAsync(async (req, res) => {
-  const data = await paystack.transfer_recipient.create({
-    type: "nuban",
-    name: "IWUANYANWU ANSELM CHIZURUM",
-    account_number: "0133177085",
-    bank_code: "032",
-    currency: "NGN",
-  });
-
-  res.status(200).json({
-    data,
-  });
-});
-
-exports.initiateTransfer = catchAsync(async (req, res) => {
-  const data = await paystack.transfer.create({
-    source: "balance",
-    reason: "Withdrawal",
-    amount: "1000",
-    recipient: "RCP_y3fvn8ogez78ohg",
-  });
-
-  res.status(200).json({
-    data,
+    status: "success",
+    message: `Congratulations! You have withdrawn ₦${amount} from your Lendsqr account to ${result.data.account_name}`,
+    balance: `₦${updUserWallet[0].amount}`,
   });
 });

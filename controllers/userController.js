@@ -56,7 +56,7 @@ exports.create_account = catchAsync(async (req, res, next) => {
   next();
 });
 
-exports.login = catchAsync(async (req, res) => {
+exports.login = catchAsync(async (req, res, next) => {
   const { username, password } = req.body;
 
   if (!username || !password) {
